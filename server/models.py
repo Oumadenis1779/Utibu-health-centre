@@ -65,3 +65,11 @@ class Statements(db.Model):
 
     customer = db.relationship('Customer', backref=db.backref('statements', lazy=True))
 
+class CartItem(db.Model):
+    CartItemID = db.Column(db.Integer, primary_key=True)
+    CustomerID = db.Column(db.Integer, db.ForeignKey('customer.CustomerID'), nullable=False)
+    MedicationID = db.Column(db.Integer, db.ForeignKey('medication.MedicationID'), nullable=False)
+    Quantity = db.Column(db.Integer, nullable=False)
+
+    customer = db.relationship('Customer', backref=db.backref('cart_items', lazy=True))
+    medication = db.relationship('Medication')

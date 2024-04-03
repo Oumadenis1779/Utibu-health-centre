@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_migrate import Migrate
-from models import db, Customer, Medication, Orders, OrderItems, Payments,Statements
+from models import db, Customer, Medication, Orders, OrderItems, Payments,Statements,CartItem
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash
@@ -485,6 +485,47 @@ def delete_statement(id):
         return jsonify({'message': 'Statement deleted successfully'})
     else:
         return jsonify({'message': 'Statement not found'}), 404
+
+
+@app.route('/cart', methods=['POST'])
+def add_to_cart():
+    data = request.json
+    customer_id = data.get('customer_id')
+    medication_id = data.get('medication_id')
+    quantity = data.get('quantity')
+
+    if not customer_id or not medication_id or not quantity:
+        return jsonify({'error': 'Customer ID, Medication ID, and quantity are required'}), 400
+
+    # Check if the item already exists in the cart
+    existing_item = CartItem.query.filter_by(CustomerID=customer_id, MedicationID=medication_id).first()
+    if existing_item:
+        return jsonify({'error': 'Item already exists in the cart'}), 409
+
+    # Create a new cart item
+    new_cart_item = CartItem(CustomerID=customer_id, MedicationID=medication_id, Quantity=quantity)
+    db.session.add(new_cart_item)
+    db.session.commit()
+    return jsonify({'message': 'Item added to cart successfully'}), 201
+
+
+@app.route('/cart/<int:cart_item_id>', methods=['PUT'])
+def update_cart_item(cart_item_id):
+    cart_item = CartItem.query.get_or_404(cart_item_id)
+    data = request.json
+    cart_item.Quantity = data.get('quantity')
+    db.session.commit()
+    return jsonify({'message': 'Cart item updated successfully'})
+
+@app.route('/cart/<int:cart_item_id>', methods=['DELETE'])
+def remove_from_cart(cart_item_id):
+    cart_item = CartItem.query.get_or_404(cart_item_id)
+    db.session.delete(cart_item)
+    db.session.commit()
+    return jsonify({'message': 'Item removed from cart successfully'})
+
+
+
 
 
 
