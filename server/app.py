@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, redirect, url_for
-
+import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
@@ -9,18 +9,19 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash
 from datetime import datetime
+# from dotenv import load_dotenv
+
 
 app = Flask(__name__)
 CORS(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///utibu_health.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = 'secrets.token_urlsafe(32)'
+app.config["JWT_SECRET_KEY"] = os.environ.get('secret_key')
 
 db.init_app(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
-
 
 
 @app.route('/add_customer', methods=['POST'])
@@ -204,7 +205,6 @@ def delete_medication(medication_id):
     return jsonify({'message': 'Medication deleted successfully'})
 
 
-
 # @app.route('/order', methods=['POST'])
 # def order_medication():
 #     data = request.json
@@ -287,7 +287,6 @@ def delete_order(id):
     db.session.delete(order)
     db.session.commit()
     return jsonify({'message': 'Order deleted successfully'})
-  
 
 
 # Create operation
@@ -351,10 +350,9 @@ def delete_order_item(id):
         return jsonify({'message': 'Order item deleted successfully'})
     else:
         return jsonify({'message': 'Order item not found'}), 404
-    
 
 
-  # Create operation
+# Create operation
 @app.route('/payments', methods=['POST'])
 def create_payment():
     data = request.json
@@ -509,7 +507,6 @@ def add_to_cart():
     return jsonify({'message': 'Item added to cart successfully'}), 201
 
 
-
 @app.route('/cartitems/<int:user_id>', methods=['GET'])
 def get_cart_items(user_id):
     user = Customer.query.get(user_id)
@@ -536,9 +533,6 @@ def get_cart_items(user_id):
     return jsonify({'cart_items': items_data}), 200
 
 
-
-
-
 @app.route('/cart/<int:cart_item_id>', methods=['PUT'])
 def update_cart_item(cart_item_id):
     cart_item = CartItem.query.get_or_404(cart_item_id)
@@ -553,6 +547,10 @@ def remove_from_cart(cart_item_id):
     db.session.delete(cart_item)
     db.session.commit()
     return jsonify({'message': 'Item removed from cart successfully'})
+
+
+
+
 
 
 
