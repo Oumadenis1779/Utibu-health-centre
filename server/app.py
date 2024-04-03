@@ -67,7 +67,7 @@ def login():
     if user and user.check_password(password):
         # Generate JWT token
         access_token = create_access_token(identity=user.Username)
-        return jsonify({'message': 'Login successful', 'access_token': access_token}), 200
+        return jsonify({'message': 'Login successful',  'access_token': access_token, 'email': user.Email, 'customer_id': user.CustomerID }), 200
     else:
         return jsonify({'error': 'Invalid username or password'}), 401
 
@@ -553,10 +553,6 @@ def remove_from_cart(cart_item_id):
     db.session.delete(cart_item)
     db.session.commit()
     return jsonify({'message': 'Item removed from cart successfully'})
-
-
-
-
 
 
 
