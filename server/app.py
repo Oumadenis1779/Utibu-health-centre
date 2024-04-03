@@ -509,6 +509,36 @@ def add_to_cart():
     return jsonify({'message': 'Item added to cart successfully'}), 201
 
 
+
+@app.route('/cartitems/<int:user_id>', methods=['GET'])
+def get_cart_items(user_id):
+    user = Customer.query.get(user_id)
+
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Retrieve the items in the user's cart
+    cart_items = CartItem.query.filter_by(CustomerID=user_id).all()
+
+    # Prepare the response data
+    items_data = []
+    for item in cart_items:
+        medication = Medication.query.get(item.MedicationID)
+        items_data.append({
+            "CartItemID": item.CartItemID,
+            "MedicationID": medication.MedicationID,
+            "MedicationName": medication.Name,
+            "Quantity": item.Quantity,
+            "Subtotal": item.Quantity * medication.PricePerUnit,
+            # Add other details as needed
+        })
+
+    return jsonify({'cart_items': items_data}), 200
+
+
+
+
+
 @app.route('/cart/<int:cart_item_id>', methods=['PUT'])
 def update_cart_item(cart_item_id):
     cart_item = CartItem.query.get_or_404(cart_item_id)
